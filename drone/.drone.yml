@@ -1,0 +1,39 @@
+kind: pipeline
+type: docker
+name: testdrone
+
+workspace:
+  base: /drone
+
+steps:
+- name: build
+  image: golang
+  commands:
+    - echo $GOPATH
+    - pwd
+    - go build -o goexec_build_from_drone
+    - ls -al
+    - chmod  +x ./goexec_build_from_drone
+    - ./goexec_build_from_drone
+
+- name: deploy
+  image: appleboy/drone-scp
+  settings:
+    host: 
+      - ip
+    username: root
+    password: 
+      from_secret: ssh_password
+    target: /home/www/html/test/gotest
+    source: goexec_build_from_drone  
+
+- name: run
+  image: appleboy/drone-ssh
+  settings:
+    host: 
+      - ip
+    username: root
+    password: 
+      from_secret: ssh_password
+    script:
+      - cd /home/www/html/test/gotest && ./goexec_build_from_drone 
