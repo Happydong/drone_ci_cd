@@ -1,6 +1,6 @@
 kind: pipeline
 type: docker
-name: testdrone
+name: runner
 
 workspace:
   base: /drone
@@ -37,3 +37,27 @@ steps:
       from_secret: ssh_password
     script:
       - cd /home/www/html/test/gotest && ./goexec_build_from_drone 
+      
+---
+
+kind: pipeline
+type: docker
+name: notify
+
+clone:
+  disable: true
+
+steps:
+- name: dingtalk
+  image: lddsb/drone-dingtalk-message
+  settings:
+    token:
+      from_secret: ding_token
+    type: markdown
+
+
+trigger:
+  status: [success, failure]
+
+depends_on: [runner]      
+      
